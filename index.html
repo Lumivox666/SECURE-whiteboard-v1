@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>SECURE | Parts Whiteboard</title>
+  <link rel="icon" type="image/png" href="secure-logo.png">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <section id="authView" class="auth-screen" hidden>
+    <form id="loginForm" class="auth-card">
+      <img src="secure-logo.png" alt="SECURE" class="auth-logo">
+      <h1>Parts Whiteboard</h1>
+      <p>Enter your team access code.</p>
+      <label for="loginPin">Access code</label>
+      <input id="loginPin" name="pin" type="password" autocomplete="current-password" required autofocus placeholder="Access code">
+      <div id="loginError" class="field-error" aria-live="polite"></div>
+      <button type="submit" class="btn btn-primary full">Open whiteboard</button>
+    </form>
+  </section>
+  <div id="app" hidden>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <img src="secure-logo.png" alt="SECURE" class="brand-logo">
+          <span class="brand-separator"></span>
+          <span class="brand-app">PARTS WHITEBOARD</span>
+        </div>
+        <div class="top-actions">
+          <span id="liveDate" class="live-date"></span>
+          <button class="btn btn-ghost top-hide-mobile" data-action="display" title="Show the board on a TV or wall monitor"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8m-4-4v4"/></svg><span id="displayLabel">TV board</span></button>
+          <button class="btn btn-ghost top-hide-mobile" data-action="export" title="Download your data"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg> Export</button>
+          <button class="btn btn-primary" data-action="add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> New entry</button>
+          <button class="icon-btn" data-action="settings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="4"/></svg></button>
+        </div>
+      </div>
+    </header>
+    <main class="layout">
+      <div class="page-header">
+        <div><div class="eyebrow">OPERATIONS / PARTS</div><h1>Pickup & delivery schedule</h1><p>Track parts by date, vendor, unit and purchase order.</p></div>
+        <div class="header-meta"><span class="live-indicator"><i></i> Updated as you work</span></div>
+      </div>
+      <div id="demoBanner" class="demo-banner" hidden>
+        <div><strong>Sample entries loaded</strong><span> These five example jobs come from the planning notes. Clear them before entering live work.</span></div>
+        <button class="btn btn-text" data-action="clear-demo">Clear examples</button>
+      </div>
+      <section class="metrics" aria-label="Schedule summary">
+        <div class="metric"><span class="metric-label">Due on selected day</span><div class="metric-bottom"><strong id="metricDue">0</strong><span class="metric-symbol blue">▦</span></div></div>
+        <div class="metric"><span class="metric-label">Pickups</span><div class="metric-bottom"><strong id="metricPickup">0</strong><span class="metric-symbol pickup">↗</span></div></div>
+        <div class="metric"><span class="metric-label">Deliveries</span><div class="metric-bottom"><strong id="metricDelivery">0</strong><span class="metric-symbol delivery">↘</span></div></div>
+        <div class="metric metric-overdue"><span class="metric-label">Past due · all dates</span><div class="metric-bottom"><strong id="metricOverdue">0</strong><span class="metric-symbol warning">!</span></div></div>
+      </section>
+      <div class="workspace">
+        <aside class="sidebar">
+          <div class="panel calendar-panel">
+            <div class="panel-heading"><h2>Calendar</h2><div class="calendar-controls"><button class="icon-btn small" data-action="month-prev" aria-label="Previous month">‹</button><button class="icon-btn small" data-action="month-next" aria-label="Next month">›</button></div></div>
+            <div id="calendarMonth" class="calendar-title"></div>
+            <div id="miniCalendar" class="mini-calendar"></div>
+            <button class="btn btn-today full" data-action="today">Jump to today</button>
+          </div>
+          <div class="panel filter-panel"><h2>Show entries</h2>
+            <div class="filter-set" id="kindFilters">
+              <button class="filter-row active" data-kind="all"><span class="filter-icon all"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16"/></svg></span><span>All parts</span><span id="totalCount" class="filter-count">0</span></button>
+              <button class="filter-row" data-kind="pickup"><span class="filter-icon pickup"><svg viewBox="0 0 24 24"><path d="M5 17 17 5m-9 0h9v9"/></svg></span><span>Parts pickups</span><span id="pickupCount" class="filter-count">0</span></button>
+              <button class="filter-row" data-kind="delivery"><span class="filter-icon delivery"><svg viewBox="0 0 24 24"><path d="m5 5 12 12m-9 0h9V8"/></svg></span><span>Parts deliveries</span><span id="deliveryCount" class="filter-count">0</span></button>
+            </div>
+            <div class="sidebar-rule"></div><h3>Entry status</h3>
+            <select id="statusFilter" class="select"><option value="open">Scheduled & delayed</option><option value="all">All entries</option><option value="completed">Completed only</option><option value="overdue">Past due only</option></select>
+          </div>
+          <div class="aside-foot">SECURE PARTS CONTROL <span>•</span> V1.0</div>
+        </aside>
+        <section class="board-area" aria-label="Parts schedule">
+          <div class="board-toolbar"><div class="board-day"><div class="eyebrow" id="selectedDateMeta">SCHEDULE</div><h2 id="selectedDateLabel"></h2></div>
+            <div class="toolbar-controls"><div class="view-toggle"><button id="boardViewBtn" class="active" data-view="board">Whiteboard</button><button id="monthViewBtn" data-view="month">Month view</button></div><button class="btn btn-ghost date-nav" data-action="day-prev" aria-label="Previous day">‹</button><button class="btn btn-ghost date-nav" data-action="day-next" aria-label="Next day">›</button></div>
+          </div>
+          <div class="search-row"><label class="search-box"><svg viewBox="0 0 24 24"><circle cx="10.7" cy="10.7" r="6.7"/><path d="m16 16 5 5"/></svg><input id="search" type="search" placeholder="Search vendor, unit, PO or parts…" aria-label="Search parts"></label><span id="resultsCount" class="result-count"></span></div>
+          <div id="overdueBanner" class="overdue-banner" hidden></div>
+          <div id="boardView" class="board-columns"><section class="lane lane-pickup"><div class="lane-head"><div class="lane-title"><span class="lane-icon pickup"><svg viewBox="0 0 24 24"><path d="M5 17 17 5m-9 0h9v9"/></svg></span><div><h3>Parts pickups</h3><p>Collect from vendors</p></div></div><span id="lanePickupCount" class="lane-count">0</span></div><div id="pickupItems" class="lane-body"></div><button class="lane-add" data-action="add-pickup">+ Add pickup</button></section>
+            <section class="lane lane-delivery"><div class="lane-head"><div class="lane-title"><span class="lane-icon delivery"><svg viewBox="0 0 24 24"><path d="m5 5 12 12m-9 0h9V8"/></svg></span><div><h3>Parts deliveries</h3><p>Incoming courier / freight</p></div></div><span id="laneDeliveryCount" class="lane-count">0</span></div><div id="deliveryItems" class="lane-body"></div><button class="lane-add" data-action="add-delivery">+ Add delivery</button></section></div>
+          <div id="monthView" class="month-view" hidden></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <dialog id="entryDialog" class="dialog">
+    <form id="entryForm" class="dialog-frame" autocomplete="off"><div class="dialog-head"><div><div class="eyebrow">PARTS / ENTRY</div><h2 id="formTitle">New entry</h2></div><button type="button" class="close-btn" data-action="close-entry" aria-label="Close">×</button></div>
+      <div class="dialog-body"><div class="form-grid">
+        <label class="field"><span>Movement type *</span><select id="fieldKind" required><option value="pickup">Parts pickup</option><option value="delivery">Parts delivery</option></select></label>
+        <label class="field"><span>Expected date *</span><input type="date" id="fieldDate" required></label>
+        <label class="field"><span>Vendor / supplier *</span><input id="fieldVendor" maxlength="120" placeholder="e.g. Finning" required></label>
+        <label class="field"><span>Unit / machine number</span><input id="fieldUnit" maxlength="100" placeholder="e.g. LD167"></label>
+        <label class="field"><span>PO number</span><input id="fieldPO" maxlength="100" placeholder="e.g. PO-1045"></label>
+        <label class="field"><span>Quantity (optional)</span><input id="fieldQuantity" maxlength="60" placeholder="e.g. 2 sets"></label>
+        <label class="field wide"><span>Parts expected *</span><input id="fieldDescription" maxlength="350" placeholder="e.g. Edge, hooks" required></label>
+        <label class="field wide"><span>Notes / vendor ETA updates</span><textarea id="fieldNotes" rows="3" maxlength="1000" placeholder="Optional: order details, collection instructions, follow-up notes…"></textarea></label>
+        <label class="field wide"><span>Status</span><select id="fieldStatus"><option value="scheduled">Scheduled</option><option value="delayed">Delayed / revised ETA</option><option value="completed">Completed</option></select></label>
+      </div><div id="formError" class="field-error"></div></div>
+      <div class="dialog-footer"><button type="button" id="deleteBtn" class="btn btn-danger" data-action="delete" hidden>Delete</button><span class="flex-spacer"></span><button type="button" class="btn btn-ghost" data-action="close-entry">Cancel</button><button type="submit" class="btn btn-primary">Save entry</button></div>
+    </form>
+  </dialog>
+  <dialog id="detailDialog" class="dialog detail-dialog"><div class="dialog-frame"><div class="dialog-head"><div><div class="eyebrow" id="detailEyebrow">RELATED ENTRIES</div><h2 id="detailTitle"></h2></div><button class="close-btn" data-action="close-detail" aria-label="Close">×</button></div><div class="dialog-body" id="detailBody"></div><div class="dialog-footer"><button class="btn btn-ghost" data-action="close-detail">Close</button></div></div></dialog>
+  <dialog id="settingsDialog" class="dialog settings-dialog"><div class="dialog-frame"><div class="dialog-head"><div><div class="eyebrow">PREFERENCES</div><h2>Whiteboard settings</h2></div><button class="close-btn" data-action="close-settings" aria-label="Close">×</button></div><div class="dialog-body settings-body"><div><strong>Data export</strong><p>Download all entries for backup or spreadsheet use.</p><div class="settings-actions"><button class="btn btn-ghost" data-action="export">Export CSV</button><button class="btn btn-ghost" data-action="backup">Backup JSON</button></div></div><div><strong>Sample data</strong><p>The board starts with five examples from the planning notes. Remove examples when you begin live tracking.</p><button class="btn btn-ghost" data-action="clear-demo">Clear sample entries</button></div><div><strong>Access</strong><p id="storageInfo">Your workspace is loading…</p><button id="logoutBtn" class="btn btn-ghost" data-action="logout" hidden>Sign out</button></div></div><div class="dialog-footer"><button class="btn btn-primary" data-action="close-settings">Done</button></div></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
